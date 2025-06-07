@@ -1,5 +1,6 @@
 import { FileText, Presentation, Sparkles, Menu, Save, Plus, History } from 'lucide-react';
 import { Proposal } from '@/app/page';
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   onToggleHistory: () => void;
@@ -16,6 +17,8 @@ export function Header({
   onNewProposal,
   currentProposal 
 }: HeaderProps) {
+  const router = useRouter();
+
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
       <div className="px-4 py-4">
@@ -49,7 +52,7 @@ export function Header({
               <span>AI Enhanced</span>
             </div>
             <button
-              onClick={onNewProposal}
+              onClick={()=>router.push("/login")}
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <span>Login</span>

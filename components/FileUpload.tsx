@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { Send, Paperclip, X, FileText, AlertCircle } from 'lucide-react';
 
 interface FileUploadProps {
-  onFileUpload: (file: File, additionalText?: string) => void;
+  onFileUpload: (file?: File, additionalText?: string) => void;
 }
 
 export function FileUpload({ onFileUpload }: FileUploadProps) {
@@ -64,19 +64,21 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
       fileInputRef.current.value = '';
     }
   };
-
   const handleSubmit = () => {
-    if (uploadedFile || inputText.trim()) {
-      if (uploadedFile) {
-        onFileUpload(uploadedFile, inputText.trim() || undefined);
-      } else {
-        // Create a text file from the input
-        const textBlob = new Blob([inputText], { type: 'text/plain' });
-        const textFile = new File([textBlob], 'requirements.txt', { type: 'text/plain' });
-        onFileUpload(textFile, inputText.trim());
-      }
+    const trimmedText = inputText.trim();
+  
+    if (uploadedFile && trimmedText) {
+      // Both file and text present
+      onFileUpload(uploadedFile, trimmedText);
+    } else if (uploadedFile) {
+      // Only file
+      onFileUpload(uploadedFile);
+    } else if (trimmedText) {
+      // Only text
+      onFileUpload(undefined, trimmedText);
     }
   };
+  
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

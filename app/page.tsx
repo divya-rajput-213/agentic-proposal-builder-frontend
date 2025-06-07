@@ -35,20 +35,19 @@ export default function Home() {
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [showHistory, setShowHistory] = useState(true);
 
-  
   //api call
-  const handleFileUpload = async (file: File, additionalText?: string) => {
+  const handleFileUpload = async (file?: File | string, additionalText?: string) => {
     setIsProcessing(true);
     setCurrentStep("processing");
   
     const newProposal: Proposal = {
       id: Date.now().toString(),
-      title: `Proposal from ${file.name}`,
+      title: `Proposal from ${file instanceof File ? file.name : 'Text'}`,
       createdAt: new Date(),
       updatedAt: new Date(),
       slides: [],
       status: "draft",
-      originalFile: file.name,
+      originalFile: file instanceof File ? file.name : '',
       description: additionalText,
     };
   
@@ -57,9 +56,9 @@ export default function Home() {
       if (additionalText) {
         form.append("job_description", additionalText);
       }
-      // if(file){
-      //   form.append("file", file); // single file from parameter
-      // }
+      if (file instanceof File) {
+        form.append("file", file);
+      }
   
       const response = await fetch("https://dcc9-49-249-18-30.ngrok-free.app", {
         method: "POST",
@@ -69,12 +68,10 @@ export default function Home() {
       if (!response.ok) {
         throw new Error("Failed to upload and process file");
       }
-  console.log('response :>> ', response);
-      const data = await response.json();
-      console.log("Response from API:", data);
   
+      const data = await response.json();
       if (data) {
-        newProposal.slides = data; // assuming backend returns slides array directly
+        newProposal.slides = data;
         setSlides(data);
         setCurrentProposal(newProposal);
         setProposals((prev) => [newProposal, ...prev]);
@@ -88,6 +85,7 @@ export default function Home() {
       setIsProcessing(false);
     }
   };
+  
   
   
 
