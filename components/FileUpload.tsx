@@ -234,7 +234,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
       </div>
 
       {/* Features */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Paperclip className="h-6 w-6 text-blue-600" />
@@ -264,7 +264,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
             Get professional presentations in seconds with AI-powered content creation and design
           </p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
