@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Slide } from '@/app/page';
 import { Edit3, Type, List, Image, Layout } from 'lucide-react';
+import Markdown from 'react-markdown'
 
 interface SlideEditorProps {
   slide: Slide;
@@ -35,6 +36,10 @@ export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps
     const newBulletPoints = slide.bulletPoints.filter((_, i) => i !== index);
     onUpdate({ bulletPoints: newBulletPoints });
   };
+  const slideBackground = slide?.backgroundColor
+  ? `linear-gradient(to bottom right, ${slide.backgroundColor}, #00000010)`
+  : "linear-gradient(to bottom right, #2563eb, #9333ea)";
+
 
   return (
     <div className="bg-white rounded-lg shadow-lg">
@@ -68,7 +73,10 @@ export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps
       )}
 
       {/* Slide content */}
-      <div className="aspect-video bg-gradient-to-br from-blue-600 to-purple-700 p-12 text-white relative">
+      <div className="aspect-video  p-12 text-white relative" style={{
+          background: slideBackground,
+          color: slide.textColor || "black",
+        }}>
         {/* Title */}
         <div className="mb-8">
           {isEditingTitle && !isPreviewMode ? (
@@ -86,7 +94,7 @@ export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps
               className={`text-4xl font-bold ${!isPreviewMode ? 'cursor-pointer hover:opacity-80' : ''}`}
               onClick={() => !isPreviewMode && setIsEditingTitle(true)}
             >
-              {slide.title}
+              <Markdown>{slide.title}</Markdown>
               {!isPreviewMode && (
                 <Edit3 className="h-5 w-5 ml-2 inline opacity-50" />
               )}
@@ -111,7 +119,7 @@ export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps
                 className={`text-xl opacity-90 ${!isPreviewMode ? 'cursor-pointer hover:opacity-80' : ''}`}
                 onClick={() => !isPreviewMode && setIsEditingContent(true)}
               >
-                {slide.content}
+               <Markdown>{slide.content}</Markdown> 
                 {!isPreviewMode && (
                   <Edit3 className="h-4 w-4 ml-2 inline opacity-50" />
                 )}
@@ -136,7 +144,7 @@ export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps
                 className={`text-lg opacity-90 leading-relaxed ${!isPreviewMode ? 'cursor-pointer hover:opacity-80' : ''}`}
                 onClick={() => !isPreviewMode && setIsEditingContent(true)}
               >
-                {slide.content}
+               <Markdown>{slide.content}</Markdown> 
                 {!isPreviewMode && (
                   <Edit3 className="h-4 w-4 ml-2 inline opacity-50" />
                 )}

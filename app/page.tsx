@@ -14,6 +14,8 @@ export interface Slide {
   content: string;
   bulletPoints: string[];
   template: "title" | "content" | "bullets" | "image";
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export interface Proposal {
@@ -60,14 +62,14 @@ export default function Home() {
       description: additionalText,
     };
 
-    const doUpload = async (token: string) => {
+    const doUpload = async (token?: string) => {
       const formData = new FormData();
       if (additionalText) formData.append("job_description", additionalText);
       if (file instanceof File) formData.append("file", file);
 
       const response = await axios.post(
         // `${apiUrl}agent/build-proposal/`,
-        "https://dcc9-49-249-18-30.ngrok-free.app",
+        "https://e8ae-49-249-18-30.ngrok-free.app",
         formData
         // {
         //   headers: {
@@ -81,18 +83,24 @@ export default function Home() {
     };
 
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Access token missing. Please login again.");
+      // const token = localStorage.getItem("accessToken");
+      // if (!token) throw new Error("Access token missing. Please login again.");
 
-      const data = await doUpload(token);
+      const data = await doUpload();
+   
      // Check if data is a string message, don't update proposals in that case
     if (typeof data === "string") {
       alert(data); // Show the message from backend to the user
       setCurrentStep("upload");
     } else if (data) {
+      const fixedSlides = data?.slides.map((slide: any) => ({
+        ...slide,
+        id: slide.id.toString(), // convert number ID to string
+      }));
       // Assume data is slides array here
-      newProposal.slides = data;
-      setSlides(data);
+      
+      newProposal.slides = fixedSlides;
+      setSlides(fixedSlides);
       setCurrentProposal(newProposal);
       setProposals((prev) => [newProposal, ...prev]);
       setCurrentStep("editing");

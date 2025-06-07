@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Lightbulb, Palette, Type, Layout } from "lucide-react";
-import { Slide } from "@/app/page";
-
+import { Proposal, Slide } from "@/app/page";
+import axios from "axios";
 interface AIAssistantProps {
   slides: Slide[];
   currentSlideIndex: number;
@@ -125,97 +125,171 @@ export function AIAssistant({
   //     setIsTyping(false);
   //   }, 1500);
   // };
-  const handleSendMessage = async (text: string) => {
-    if (!text.trim()) return;
+  // const handleSendMessage = async (text: string) => {
+  //   if (!text.trim()) return;
+
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     text,
+  //     sender: "user",
+  //     timestamp: new Date(),
+  //   };
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setInputText("");
+  //   setIsTyping(true);
+
+  //   setTimeout(() => {
+  //     const currentSlide = slides[currentSlideIndex];
+  //     const lowerText = text.toLowerCase();
+
+  //     let suggestionText = "";
+  //     let updates: Partial<Slide> | undefined = undefined;
+
+  //     if (!currentSlide) {
+  //       suggestionText = "Slide not found.";
+  //     } else if (
+  //       lowerText.includes("improve") ||
+  //       lowerText.includes("better")
+  //     ) {
+  //       suggestionText = `I've improved slide "${currentSlide.title}".`;
+
+  //       updates = {
+  //         content: currentSlide.content + " [Improved]",
+  //         bulletPoints: currentSlide.bulletPoints?.length
+  //           ? [...currentSlide.bulletPoints, "Add a new supporting point"]
+  //           : ["Point 1", "Point 2"],
+  //         template: "bullets",
+  //       };
+  //     } else if (lowerText.includes("style")) {
+  //       suggestionText =
+  //         "Noted your request to change the style. UI styles can be applied during export or design customization.";
+  //     } else if (lowerText.includes("layout")) {
+  //       const newTemplate =
+  //         currentSlide.template === "bullets" ? "content" : "bullets";
+  //       suggestionText = `Layout updated to "${newTemplate}".`;
+
+  //       updates = {
+  //         template: newTemplate,
+  //       };
+  //     } else if (lowerText.includes("rewrite") || lowerText.includes("text")) {
+  //       suggestionText = "Content rewritten to sound more engaging.";
+  //       updates = {
+  //         content: "Here is an improved version of your content. [Rewritten]",
+  //       };
+  //     } else {
+  //       suggestionText = `I understand you want to work on "${text}". Please let me know whether it's layout, style, or content you'd like to change.`;
+  //     }
+
+  //     // ✅ Only update current slide if updates exist
+  //     if (updates) {
+  //       const updatedSlides = slides.map((slide, index) =>
+  //         index === currentSlideIndex ? { ...slide, ...updates } : slide
+  //       );
+  //       console.log("updatedSlides :>> ", updatedSlides);
+  //       setSlides(updatedSlides);
+
+  //       // Optionally, update proposal object if required by your app structure
+  //       const updatedProposal = {
+  //         ...currentProposal,
+  //         slides: updatedSlides,
+  //       };
+
+  //       setCurrentProposal(updatedProposal);
+  //       setProposals((prev: any) => {
+  //         const [_, ...rest] = prev; // Avoid pushing a new one
+  //         return [updatedProposal, ...rest];
+  //       });
+
+  //       setCurrentStep("editing");
+  //     }
+
+  //     const aiMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       text: suggestionText,
+  //       sender: "ai",
+  //       timestamp: new Date(),
+  //     };
+
+  //     setMessages((prev) => [...prev, aiMessage]);
+  //     setIsTyping(false);
+  //   }, 1500);
+  // };
+
+  const handleSendMessage = async (additionalText: string) => {
+    if (!additionalText.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text,
+      text: additionalText,
       sender: "user",
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const currentSlide = slides[currentSlideIndex];
-      const lowerText = text.toLowerCase();
+    const doUpload = async (token?: string) => {
+      const formData = new FormData();
+      if (additionalText) formData.append("job_description", additionalText);
 
-      let suggestionText = "";
-      let updates: Partial<Slide> | undefined = undefined;
+      const response = await axios.post(
+        // `${apiUrl}agent/build-proposal/`,
+        "https://e8ae-49-249-18-30.ngrok-free.app",
+        formData
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //     "Content-Type": "multipart/form-data",
+        //   },
+        // }
+      );
 
-      if (!currentSlide) {
-        suggestionText = "Slide not found.";
-      } else if (
-        lowerText.includes("improve") ||
-        lowerText.includes("better")
-      ) {
-        suggestionText = `I've improved slide "${currentSlide.title}".`;
+      return response.data;
+    };
 
-        updates = {
-          content: currentSlide.content + " [Improved]",
-          bulletPoints: currentSlide.bulletPoints?.length
-            ? [...currentSlide.bulletPoints, "Add a new supporting point"]
-            : ["Point 1", "Point 2"],
-          template: "bullets",
-        };
-      } else if (lowerText.includes("style")) {
-        suggestionText =
-          "Noted your request to change the style. UI styles can be applied during export or design customization.";
-      } else if (lowerText.includes("layout")) {
-        const newTemplate =
-          currentSlide.template === "bullets" ? "content" : "bullets";
-        suggestionText = `Layout updated to "${newTemplate}".`;
+    try {
+      // const token = localStorage.getItem("accessToken");
+      // if (!token) throw new Error("Access token missing. Please login again.");
 
-        updates = {
-          template: newTemplate,
-        };
-      } else if (lowerText.includes("rewrite") || lowerText.includes("text")) {
-        suggestionText = "Content rewritten to sound more engaging.";
-        updates = {
-          content: "Here is an improved version of your content. [Rewritten]",
-        };
-      } else {
-        suggestionText = `I understand you want to work on "${text}". Please let me know whether it's layout, style, or content you'd like to change.`;
-      }
+      const data = await doUpload();
 
-      // ✅ Only update current slide if updates exist
-      if (updates) {
-        const updatedSlides = slides.map((slide, index) =>
-          index === currentSlideIndex ? { ...slide, ...updates } : slide
-        );
-        console.log("updatedSlides :>> ", updatedSlides);
-        setSlides(updatedSlides);
+      // Check if data is a string message, don't update proposals in that case
+      if (typeof data === "string") {
+        alert(data); // Show the message from backend to the user
+        setCurrentStep("upload");
+      } else if (data) {
+        const fixedSlides = data.slides.map((slide: any) => ({
+          ...slide,
+          id: slide.id.toString(), // convert number ID to string
+        }));
+        // Assume data is slides array here
 
-        // Optionally, update proposal object if required by your app structure
-        const updatedProposal = {
-          ...currentProposal,
-          slides: updatedSlides,
-        };
+        // newProposal.slides = fixedSlides;
+        setSlides(fixedSlides);
+        // setCurrentProposal(newProposal);
+        // setProposals((prev:any) => [newProposal, ...prev]);
+        // const aiMessage: Message = {
+        //   id: (Date.now() + 1).toString(),
+        //   text: additionalText,
+        //   sender: "ai",
+        //   timestamp: new Date(),
+        // };
 
-        setCurrentProposal(updatedProposal);
-        setProposals((prev: any) => {
-          const [_, ...rest] = prev; // Avoid pushing a new one
-          return [updatedProposal, ...rest];
-        });
-
+        // setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
         setCurrentStep("editing");
       }
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: suggestionText,
-        sender: "ai",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1500);
+    } catch (error: any) {
+      console.error("File upload failed:", error);
+      alert(
+        error.message || "There was an error uploading or processing the file."
+      );
+      setCurrentStep("upload");
+    } finally {
+      // setIsProcessing(false);
+    }
   };
-
   const handleQuickAction = (prompt: string) => {
     handleSendMessage(prompt);
   };
