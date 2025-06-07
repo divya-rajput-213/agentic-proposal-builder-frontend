@@ -13,7 +13,7 @@ interface SlideEditorProps {
 export function SlideEditor({ slide, onUpdate, isPreviewMode }: SlideEditorProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
-console.log('slide :>> ', slide);
+
   const templates = [
     { id: 'title', name: 'Title Slide', icon: Type },
     { id: 'content', name: 'Content', icon: Layout },

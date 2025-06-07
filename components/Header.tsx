@@ -48,7 +48,12 @@ export function Header({
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span>AI Enhanced</span>
             </div>
-            
+            <button
+              onClick={onNewProposal}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <span>Login</span>
+            </button>
             {onSaveDraft && (
               <button
                 onClick={onSaveDraft}
