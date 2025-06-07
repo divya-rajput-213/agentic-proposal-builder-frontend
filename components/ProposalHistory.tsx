@@ -44,12 +44,6 @@ export function ProposalHistory({
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Proposal History</h2>
-          <button
-            onClick={onNewProposal}
-            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-          >
-            New
-          </button>
         </div>
         
         {/* Search */}
@@ -85,12 +79,6 @@ export function ProposalHistory({
           <div className="p-4 text-center text-gray-500">
             <FileText className="h-12 w-12 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">No proposals found</p>
-            <button
-              onClick={onNewProposal}
-              className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
-            >
-              Create your first proposal
-            </button>
           </div>
         ) : (
           <div className="p-2 space-y-2">

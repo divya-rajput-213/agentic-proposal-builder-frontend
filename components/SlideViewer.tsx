@@ -135,7 +135,7 @@ export function SlideViewer({
           <h3 className="text-sm font-medium text-gray-700 mb-4">Slides</h3>
 
           <div className="space-y-2 overflow-y-auto max-h-[650px] pr-1">
-            {slides.map((slide, index) => (
+            {slides?.map((slide, index) => (
               <div
                 key={slide.id}
                 onClick={() => onSlideChange(index)}
