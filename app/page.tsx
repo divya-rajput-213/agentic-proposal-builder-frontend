@@ -264,12 +264,6 @@ export default function Home() {
                   Our AI is analyzing your document and creating a professional
                   presentation...
                 </p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full animate-pulse"
-                    style={{ width: "75%" }}
-                  ></div>
-                </div>
               </div>
             </div>
           </div>
