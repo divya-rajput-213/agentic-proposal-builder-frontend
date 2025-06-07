@@ -85,15 +85,18 @@ export default function Home() {
       if (!token) throw new Error("Access token missing. Please login again.");
 
       const data = await doUpload(token);
-      console.log("data :>> ", data);
-      if (data) {
-        newProposal.slides = data;
-        // setSlides(data?.slides);
-        setSlides(data);
-        setCurrentProposal(newProposal);
-        setProposals((prev) => [newProposal, ...prev]);
-        setCurrentStep("editing");
-      }
+     // Check if data is a string message, don't update proposals in that case
+    if (typeof data === "string") {
+      alert(data); // Show the message from backend to the user
+      setCurrentStep("upload");
+    } else if (data) {
+      // Assume data is slides array here
+      newProposal.slides = data;
+      setSlides(data);
+      setCurrentProposal(newProposal);
+      setProposals((prev) => [newProposal, ...prev]);
+      setCurrentStep("editing");
+    }
     } catch (error: any) {
       console.error("File upload failed:", error);
       alert(
