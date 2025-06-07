@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,45 +11,44 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
+  
     try {
-      const response = await fetch(
-        "https://8b43-49-249-18-30.ngrok-free.app/auth/api/login/",
+      const response = await axios.post(
+        `${apiUrl}auth/api/login/`,
         {
-          method: "POST",
+          email,
+          password,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email, password }),
         }
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.detail || "Login failed");
-      }
-
-      // Login successful
+  
+      const data = response.data;
+  
+      // ✅ Save tokens to localStorage
+      localStorage.setItem("accessToken", data.token.access);
+      localStorage.setItem("refreshToken", data.token.refresh);
+  
       console.log("Logged in:", data);
-
-      // Optionally store token/data in localStorage or cookies
-      // localStorage.setItem("token", data.token);
-
-      // Redirect to home or dashboard
+  
+      // 🔁 Redirect to dashboard/home
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.response?.data?.detail || "Login failed");
     } finally {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md relative">

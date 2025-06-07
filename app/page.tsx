@@ -6,6 +6,7 @@ import { SlideViewer } from "@/components/SlideViewer";
 import { AIAssistant } from "@/components/AIAssistant";
 import { Header } from "@/components/Header";
 import { ProposalHistory } from "@/components/ProposalHistory";
+import axios from "axios";
 
 export interface Slide {
   id: string;
@@ -37,15 +38,31 @@ export default function Home() {
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [showHistory, setShowHistory] = useState(true);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const refreshAccessToken = async (): Promise<string | null> => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) return null;
+
+      const response = await axios.post(
+        `${apiUrl}auth/api/token/refresh/`,
+        { refresh: refreshToken },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const newAccessToken = response.data.access;
+      localStorage.setItem("accessToken", newAccessToken);
+      return newAccessToken;
+    } catch (err) {
+      return null;
+    }
+  };
   //api call
   const handleFileUpload = async (
     file?: File | string,
     additionalText?: string
   ) => {
     if (!apiUrl) return;
-
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ5Mjg3NzY5LCJpYXQiOjE3NDkyODY1NjksImp0aSI6IjU2Y2VlOTY1NDM3MjQ0MTE5NDkwZGMzMDhhODZmMzE0IiwidXNlcl9pZCI6M30.c3BOvGKmc44bQz58WwXfrpiYv7ShKwVtLZs8Gt6hnGI"; // Ideally store in localStorage or context
 
     setIsProcessing(true);
     setCurrentStep("processing");
@@ -61,24 +78,50 @@ export default function Home() {
       description: additionalText,
     };
 
+    const doUpload = async (token: string) => {
+      const formData = new FormData();
+      if (additionalText) formData.append("job_description", additionalText);
+      if (file instanceof File) formData.append("file", file);
+
+      const response = await axios.post(
+        `${apiUrl}agent/build-proposal/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return response.data;
+    };
+
     try {
-      const form = new FormData();
-      if (additionalText) form.append("job_description", additionalText);
-      if (file instanceof File) form.append("file", file);
+      let token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("No access token");
 
-      const response = await fetch(`${apiUrl}agent/build-proposal/`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: form,
-      });
+      let data;
 
-      if (!response.ok) {
-        throw new Error("Failed to upload and process file");
+      try {
+        data = await doUpload(token);
+      } catch (error: any) {
+        if (
+          error.response?.status === 401 &&
+          error.response?.data?.code === "token_not_valid"
+        ) {
+          // Try refreshing token
+          const newToken = await refreshAccessToken();
+          if (!newToken)
+            throw new Error("Session expired. Please login again.");
+
+          // Retry upload with new token
+          data = await doUpload(newToken);
+        } else {
+          throw error;
+        }
       }
 
-      const data = await response.json();
       if (data) {
         newProposal.slides = data;
         setSlides(data);
@@ -86,134 +129,16 @@ export default function Home() {
         setProposals((prev) => [newProposal, ...prev]);
         setCurrentStep("editing");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("File upload failed:", error);
-      alert("There was an error uploading or processing the file.");
+      alert(
+        error.message || "There was an error uploading or processing the file."
+      );
       setCurrentStep("upload");
     } finally {
       setIsProcessing(false);
     }
   };
-
-  // const handleFileUpload = async () => {
-  //   setIsProcessing(true);
-  //   setCurrentStep('processing');
-
-  //   const newProposal: Proposal = {
-  //     id: Date.now().toString(),
-  //     title: `Proposal from Dummy Backend`,
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //     slides: [],
-  //     status: 'draft',
-  //     originalFile: 'dummy.txt',
-  //     description: 'This is a dummy description for testing'
-  //   };
-
-  //   try {
-  //     // This is the dummy response (you can also move it to a separate file if large)
-  //     const dummySlides: Slide[] = [
-  //       {
-  //         "id": "1",
-  //         "title": "Proposal for Food Court App Development",
-  //         "content": "This proposal outlines the development of a mobile application for food courts, designed to enhance the customer experience and streamline operations.",
-  //         "bulletPoints": [],
-  //         "template": "title"
-  //       },
-  //       {
-  //         "id": "2",
-  //         "title": "Executive Summary",
-  //         "content": "This proposal outlines the development of a mobile application for food courts, designed to enhance the customer experience and streamline operations. The app will allow users to browse menus, order food, make payments, track orders, and provide feedback. For food court vendors, it will offer inventory management, sales tracking, and communication tools. This project aims to create a user-friendly and efficient platform that improves the overall food court experience for both customers and vendors.",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "3",
-  //         "title": "Scope of Work",
-  //         "content": "This project encompasses the complete design and development of a food court mobile application, including:",
-  //         "bulletPoints": [
-  //           "Customer-facing features:",
-  //           "Vendor-facing features:",
-  //           "Admin Panel:"
-  //         ],
-  //         "template": "bullets"
-  //       },
-  //       {
-  //         "id": "4",
-  //         "title": "Milestones & Timeline",
-  //         "content": "The project will be completed in four phases, spanning approximately 12 weeks:",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "5",
-  //         "title": "Resource & Role Breakdown",
-  //         "content": "* Project Manager: Oversees the project, manages communication, and ensures timely delivery.\n* UX/UI Designer: Designs the user interface and user experience of the application.\n* Frontend Developer: Develops the customer-facing and vendor-facing interfaces.\n* Backend Developer: Develops the server-side logic and database.\n* QA Tester: Conducts thorough testing to identify and resolve bugs.",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "6",
-  //         "title": "Architecture",
-  //         "content": "The application will utilize a three-tier architecture:",
-  //         "bulletPoints": [
-  //           "Presentation Tier: Mobile app (iOS and Android)",
-  //           "Application Tier: RESTful APIs built using [Specify Technology - e.g., Node.js, Python/Django]",
-  //           "Data Tier: Cloud-based database (e.g., PostgreSQL, MySQL on AWS/Google Cloud)"
-  //         ],
-  //         "template": "bullets"
-  //       },
-  //       {
-  //         "id": "7",
-  //         "title": "Flow",
-  //         "content": "* Customer Flow: Search for food court -> Browse menu -> Add items to cart -> Checkout -> Payment -> Order tracking -> Review & Rating.\n* Vendor Flow: Login -> Manage Inventory -> Accept/Reject orders -> View sales data -> Manage customer communication.\n* Admin Flow: Manage users -> Manage content -> View analytics -> Send push notifications.",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "8",
-  //         "title": "Tech Stack",
-  //         "content": "* Frontend: React Native (or Flutter, specify choice based on client preference)\n* Backend: Node.js with Express.js (or Python/Django, specify choice based on client preference)\n* Database: PostgreSQL (or MySQL, specify choice based on client preference)\n* Cloud Platform: AWS (or Google Cloud, Azure, specify choice based on client preference)\n* Payment Gateway: Stripe/PayPal (or other, specify choice based on client preference)",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "9",
-  //         "title": "Deliverables",
-  //         "content": "* Fully functional iOS and Android mobile applications.\n* Comprehensive documentation, including user manuals and API specifications.\n* Source code.\n* Post-launch support (specified duration).",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "10",
-  //         "title": "Budget Breakdown",
-  //         "content": "| Item                | Cost      |\n|---------------------|------------|\n| Design              | $[Amount]  |\n| Development          | $[Amount]  |\n| Testing             | $[Amount]  |\n| Deployment          | $[Amount]  |\n| Project Management  | $[Amount]  |\n| **Total**           | **$[Total]** |",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       },
-  //       {
-  //         "id": "11",
-  //         "title": "Terms & Conditions",
-  //         "content": "* Payment Schedule: [Specify payment milestones and schedule]\n* Intellectual Property Rights: [Clearly define ownership of the developed application]\n* Confidentiality: [Outline confidentiality agreements]\n* Warranty: [Specify warranty period and coverage]\n* Dispute Resolution: [Outline procedures for resolving disputes]",
-  //         "bulletPoints": [],
-  //         "template": "content"
-  //       }
-  //     ];
-
-  //     // Use it just like you would in real API response
-  //     newProposal.slides = dummySlides;
-  //     setSlides(dummySlides);
-  //     setCurrentProposal(newProposal);
-  //     setProposals(prev => [newProposal, ...prev]);
-  //     setCurrentStep('editing');
-  //   } catch (error) {
-  //     console.error("Dummy upload error:", error);
-  //     alert("Something went wrong with dummy data.");
-  //     setCurrentStep('upload');
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // };
 
   const updateSlide = (slideId: string, updates: Partial<Slide>) => {
     setSlides((prev) =>

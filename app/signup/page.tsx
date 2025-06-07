@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import axios from "axios";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -11,48 +11,46 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
+  
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
-      const response = await fetch(
-        "https://8b43-49-249-18-30.ngrok-free.app/auth/api/register/",
+      const response = await axios.post(
+        `${apiUrl}auth/api/register/`,
         {
-          method: "POST",
+          email,
+          name,
+          password,
+          password2: confirmPassword,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            email,
-            name,
-            password,
-            password2: confirmPassword,
-          }),
         }
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.detail || "Signup failed. Please try again.");
-      }
-
+  
       // ✅ Signup success
       alert("Signup successful. Please log in.");
       router.push("/login");
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Signup failed. Please try again.";
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
