@@ -34,9 +34,12 @@ export default function Home() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [showHistory, setShowHistory] = useState(true);
-
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   //api call
   const handleFileUpload = async (file?: File | string, additionalText?: string) => {
+    if(!apiUrl){
+      return
+    }
     setIsProcessing(true);
     setCurrentStep("processing");
   
@@ -60,7 +63,7 @@ export default function Home() {
         form.append("file", file);
       }
   
-      const response = await fetch("https://dcc9-49-249-18-30.ngrok-free.app", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         body: form,
       });
