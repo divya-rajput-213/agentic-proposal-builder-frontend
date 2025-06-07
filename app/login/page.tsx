@@ -34,13 +34,11 @@ export default function LoginPage() {
   
       const data = response.data;
   
-      // ✅ Save tokens to localStorage
       localStorage.setItem("accessToken", data.token.access);
       localStorage.setItem("refreshToken", data.token.refresh);
   
       console.log("Logged in:", data);
   
-      // 🔁 Redirect to dashboard/home
       router.push("/");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Login failed");

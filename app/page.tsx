@@ -38,25 +38,7 @@ export default function Home() {
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [showHistory, setShowHistory] = useState(true);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  const refreshAccessToken = async (): Promise<string | null> => {
-    try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) return null;
-
-      const response = await axios.post(
-        `${apiUrl}auth/api/token/refresh/`,
-        { refresh: refreshToken },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const newAccessToken = response.data.access;
-      localStorage.setItem("accessToken", newAccessToken);
-      return newAccessToken;
-    } catch (err) {
-      return null;
-    }
-  };
+  console.log("slides :>> ", slides);
   //api call
   const handleFileUpload = async (
     file?: File | string,
@@ -84,46 +66,29 @@ export default function Home() {
       if (file instanceof File) formData.append("file", file);
 
       const response = await axios.post(
-        `${apiUrl}agent/build-proposal/`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        // `${apiUrl}agent/build-proposal/`,
+        "https://dcc9-49-249-18-30.ngrok-free.app",
+        formData
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //     "Content-Type": "multipart/form-data",
+        //   },
+        // }
       );
 
       return response.data;
     };
 
     try {
-      let token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("No access token");
+      const token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("Access token missing. Please login again.");
 
-      let data;
-
-      try {
-        data = await doUpload(token);
-      } catch (error: any) {
-        if (
-          error.response?.status === 401 &&
-          error.response?.data?.code === "token_not_valid"
-        ) {
-          // Try refreshing token
-          const newToken = await refreshAccessToken();
-          if (!newToken)
-            throw new Error("Session expired. Please login again.");
-
-          // Retry upload with new token
-          data = await doUpload(newToken);
-        } else {
-          throw error;
-        }
-      }
-
+      const data = await doUpload(token);
+      console.log("data :>> ", data);
       if (data) {
         newProposal.slides = data;
+        // setSlides(data?.slides);
         setSlides(data);
         setCurrentProposal(newProposal);
         setProposals((prev) => [newProposal, ...prev]);
@@ -245,7 +210,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
       {/* History Sidebar */}
-      {showHistory && (
+      {showHistory &&  (
         <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0">
           <ProposalHistory
             proposals={proposals}
@@ -308,31 +273,43 @@ export default function Home() {
         )}
 
         {currentStep === "editing" && (
-          <div className="flex-1 flex">
-            <div className="flex-1 flex flex-col">
-              <SlideViewer
-                slides={slides}
-                currentSlideIndex={currentSlideIndex}
-                onSlideChange={setCurrentSlideIndex}
-                onSlideUpdate={updateSlide}
-                onAddSlide={addSlide}
-                onDeleteSlide={deleteSlide}
-              />
-            </div>
-            <div className="w-96 border-l border-gray-200">
-              <AIAssistant
-                slides={slides}
-                currentSlideIndex={currentSlideIndex}
-                onSlideUpdate={updateSlide}
-                onAddSlide={addSlide}
-                setSlides={setSlides}
-                setCurrentProposal={setCurrentProposal}
-                currentProposal={currentProposal}
-                setCurrentStep={setCurrentStep}
-                setProposals={setProposals}
-              />
-            </div>
-          </div>
+          <>
+            {Array.isArray(slides) && slides.length > 0 ? (
+              <div className="flex-1 flex">
+                <div className="flex-1 flex flex-col">
+                  <SlideViewer
+                    slides={slides}
+                    currentSlideIndex={currentSlideIndex}
+                    onSlideChange={setCurrentSlideIndex}
+                    onSlideUpdate={updateSlide}
+                    onAddSlide={addSlide}
+                    onDeleteSlide={deleteSlide}
+                  />
+                </div>
+                <div className="w-96 border-l border-gray-200">
+                  <AIAssistant
+                    slides={slides}
+                    currentSlideIndex={currentSlideIndex}
+                    onSlideUpdate={updateSlide}
+                    onAddSlide={addSlide}
+                    setSlides={setSlides}
+                    setCurrentProposal={setCurrentProposal}
+                    currentProposal={currentProposal}
+                    setCurrentStep={setCurrentStep}
+                    setProposals={setProposals}
+                  />
+                </div>
+              </div>
+            ) : typeof slides === "string" ? (
+              <div className="p-4 text-center text-gray-600 italic">
+                {slides}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-gray-600 italic">
+                No slides available.
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

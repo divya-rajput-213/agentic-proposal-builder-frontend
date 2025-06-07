@@ -42,7 +42,6 @@ export default function SignupPage() {
         }
       );
   
-      // ✅ Signup success
       alert("Signup successful. Please log in.");
       router.push("/login");
     } catch (err: any) {

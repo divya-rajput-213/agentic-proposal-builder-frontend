@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Slide } from "@/app/page";
 import { SlideEditor } from "./SlideEditor";
-
 interface SlideViewerProps {
   slides: Slide[];
   currentSlideIndex: number;
