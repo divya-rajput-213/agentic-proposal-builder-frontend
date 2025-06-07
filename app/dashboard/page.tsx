@@ -1,37 +1,42 @@
 "use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FileText, 
-  Download, 
-  Edit, 
-  Trash2, 
-  Plus, 
-  Search, 
-  Filter, 
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FileText,
+  Download,
+  Edit,
+  Trash2,
+  Plus,
+  Search,
+  Filter,
   Calendar,
   Eye,
   Share2,
   MoreVertical,
   Clock,
   CheckCircle,
-  AlertCircle
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface Proposal {
   id: string;
   title: string;
   type: string;
   contentType: string;
-  status: 'draft' | 'completed' | 'shared';
+  status: "draft" | "completed" | "shared";
   createdAt: string;
   updatedAt: string;
   description: string;
@@ -40,70 +45,74 @@ interface Proposal {
 
 const mockProposals: Proposal[] = [
   {
-    id: '1',
-    title: 'Marketing Campaign Proposal',
-    type: 'Marketing proposal',
-    contentType: 'Pitch deck',
-    status: 'completed',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-    description: 'Comprehensive marketing strategy for Q2 2024 product launch',
-    pdfUrl: '/proposals/marketing-campaign.pdf'
+    id: "1",
+    title: "Marketing Campaign Proposal",
+    type: "Marketing proposal",
+    contentType: "Pitch deck",
+    status: "completed",
+    createdAt: "2024-01-15",
+    updatedAt: "2024-01-15",
+    description: "Comprehensive marketing strategy for Q2 2024 product launch",
+    pdfUrl: "/proposals/marketing-campaign.pdf",
   },
   {
-    id: '2',
-    title: 'Partnership Agreement Draft',
-    type: 'Partnership proposal',
-    contentType: 'Proposal',
-    status: 'draft',
-    createdAt: '2024-01-14',
-    updatedAt: '2024-01-16',
-    description: 'Strategic partnership proposal with tech startup'
+    id: "2",
+    title: "Partnership Agreement Draft",
+    type: "Partnership proposal",
+    contentType: "Proposal",
+    status: "draft",
+    createdAt: "2024-01-14",
+    updatedAt: "2024-01-16",
+    description: "Strategic partnership proposal with tech startup",
   },
   {
-    id: '3',
-    title: 'Event Sponsorship Package',
-    type: 'Event proposal',
-    contentType: 'One-pager',
-    status: 'shared',
-    createdAt: '2024-01-12',
-    updatedAt: '2024-01-13',
-    description: 'Annual conference sponsorship opportunities',
-    pdfUrl: '/proposals/event-sponsorship.pdf'
+    id: "3",
+    title: "Event Sponsorship Package",
+    type: "Event proposal",
+    contentType: "One-pager",
+    status: "draft",
+    createdAt: "2024-01-12",
+    updatedAt: "2024-01-13",
+    description: "Annual conference sponsorship opportunities",
+    pdfUrl: "/proposals/event-sponsorship.pdf",
   },
   {
-    id: '4',
-    title: 'Project Development Proposal',
-    type: 'Project proposal',
-    contentType: 'Report',
-    status: 'completed',
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-11',
-    description: 'Mobile app development project scope and timeline',
-    pdfUrl: '/proposals/project-development.pdf'
-  }
+    id: "4",
+    title: "Project Development Proposal",
+    type: "Project proposal",
+    contentType: "Report",
+    status: "completed",
+    createdAt: "2024-01-10",
+    updatedAt: "2024-01-11",
+    description: "Mobile app development project scope and timeline",
+    pdfUrl: "/proposals/project-development.pdf",
+  },
 ];
 
 export default function Dashboard() {
   const [proposals, setProposals] = useState<Proposal[]>(mockProposals);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
+    null
+  );
 
-  const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || proposal.status === filterStatus;
+  const filteredProposals = proposals.filter((proposal) => {
+    const matchesSearch =
+      proposal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proposal.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterStatus === "all" || proposal.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'draft':
+      case "draft":
         return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'shared':
+      case "shared":
         return <Share2 className="w-4 h-4 text-blue-500" />;
       default:
         return <AlertCircle className="w-4 h-4 text-gray-500" />;
@@ -112,14 +121,14 @@ export default function Dashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'shared':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "shared":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -129,13 +138,13 @@ export default function Dashboard() {
       console.log(`Downloading PDF for: ${proposal.title}`);
       alert(`PDF download started for: ${proposal.title}`);
     } else {
-      alert('PDF not available for this proposal');
+      alert("PDF not available for this proposal");
     }
   };
 
   const handleDeleteProposal = (id: string) => {
-    if (confirm('Are you sure you want to delete this proposal?')) {
-      setProposals(prev => prev.filter(p => p.id !== id));
+    if (confirm("Are you sure you want to delete this proposal?")) {
+      setProposals((prev) => prev.filter((p) => p.id !== id));
     }
   };
 
@@ -156,7 +165,10 @@ export default function Dashboard() {
               </CardTitle>
               <div className="flex items-center gap-2 mt-2">
                 {getStatusIcon(proposal.status)}
-                <Badge variant="outline" className={getStatusColor(proposal.status)}>
+                <Badge
+                  variant="outline"
+                  className={getStatusColor(proposal.status)}
+                >
                   {proposal.status}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
@@ -166,7 +178,11 @@ export default function Dashboard() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
                   <MoreVertical className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -185,7 +201,10 @@ export default function Dashboard() {
                     Download PPT
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => handleDeleteProposal(proposal.id)} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={() => handleDeleteProposal(proposal.id)}
+                  className="text-red-600"
+                >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
@@ -209,9 +228,9 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               className="flex-1"
               onClick={() => setSelectedProposal(proposal)}
             >
@@ -219,8 +238,8 @@ export default function Dashboard() {
               View
             </Button>
             {proposal.pdfUrl && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="bg-green-600 hover:bg-green-600"
                 onClick={() => handleDownloadPDF(proposal)}
               >
@@ -241,12 +260,15 @@ export default function Dashboard() {
         <div className=" mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Proposal Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage your proposals and drafts</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Proposal Dashboard
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage your proposals and drafts
+              </p>
             </div>
             <Link href="/">
-              <Button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
+              <Button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <Plus className="w-4 h-4 mr-2" />
                 New Proposal
               </Button>
@@ -257,13 +279,17 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className=" mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Proposals</p>
-                  <p className="text-2xl font-bold text-gray-900">{proposals.length}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Proposals
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {proposals.length}
+                  </p>
                 </div>
                 <FileText className="w-8 h-8 text-purple-600" />
               </div>
@@ -275,7 +301,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Completed</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {proposals.filter(p => p.status === 'completed').length}
+                    {proposals.filter((p) => p.status === "completed").length}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -288,23 +314,10 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Drafts</p>
                   <p className="text-2xl font-bold text-yellow-600">
-                    {proposals.filter(p => p.status === 'draft').length}
+                    {proposals.filter((p) => p.status === "draft").length}
                   </p>
                 </div>
                 <Clock className="w-8 h-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Shared</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {proposals.filter(p => p.status === 'shared').length}
-                  </p>
-                </div>
-                <Share2 className="w-8 h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
@@ -321,12 +334,15 @@ export default function Dashboard() {
               className="pl-10"
             />
           </div>
-          <Tabs value={filterStatus} onValueChange={setFilterStatus} className="w-auto">
+          <Tabs
+            value={filterStatus}
+            onValueChange={setFilterStatus}
+            className="w-auto"
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
               <TabsTrigger value="draft">Drafts</TabsTrigger>
-              <TabsTrigger value="shared">Shared</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -343,12 +359,13 @@ export default function Dashboard() {
         {filteredProposals.length === 0 && (
           <div className="text-center py-12">
             <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No proposals found
+            </h3>
             <p className="text-gray-600 mb-6">
-              {searchTerm || filterStatus !== 'all' 
-                ? 'Try adjusting your search or filter criteria'
-                : 'Get started by creating your first proposal'
-              }
+              {searchTerm || filterStatus !== "all"
+                ? "Try adjusting your search or filter criteria"
+                : "Get started by creating your first proposal"}
             </p>
             <Link href="/">
               <Button className="bg-purple-600 hover:bg-purple-700">
@@ -385,12 +402,13 @@ export default function Dashboard() {
                     </h2>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(selectedProposal.status)}
-                      <Badge variant="outline" className={getStatusColor(selectedProposal.status)}>
+                      <Badge
+                        variant="outline"
+                        className={getStatusColor(selectedProposal.status)}
+                      >
                         {selectedProposal.status}
                       </Badge>
-                      <Badge variant="outline">
-                        {selectedProposal.type}
-                      </Badge>
+                      <Badge variant="outline">{selectedProposal.type}</Badge>
                       <Badge variant="outline">
                         {selectedProposal.contentType}
                       </Badge>
@@ -407,18 +425,34 @@ export default function Dashboard() {
 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Description</h3>
-                    <p className="text-gray-600">{selectedProposal.description}</p>
+                    <h3 className="font-medium text-gray-900 mb-2">
+                      Description
+                    </h3>
+                    <p className="text-gray-600">
+                      {selectedProposal.description}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-1">Created</h3>
-                      <p className="text-gray-600">{new Date(selectedProposal.createdAt).toLocaleDateString()}</p>
+                      <h3 className="font-medium text-gray-900 mb-1">
+                        Created
+                      </h3>
+                      <p className="text-gray-600">
+                        {new Date(
+                          selectedProposal.createdAt
+                        ).toLocaleDateString()}
+                      </p>
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-1">Last Updated</h3>
-                      <p className="text-gray-600">{new Date(selectedProposal.updatedAt).toLocaleDateString()}</p>
+                      <h3 className="font-medium text-gray-900 mb-1">
+                        Last Updated
+                      </h3>
+                      <p className="text-gray-600">
+                        {new Date(
+                          selectedProposal.updatedAt
+                        ).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
 
@@ -428,7 +462,7 @@ export default function Dashboard() {
                       Edit Proposal
                     </Button>
                     {selectedProposal.pdfUrl && (
-                      <Button 
+                      <Button
                         className="bg-green-600 hover:bg-green-700 flex-1"
                         onClick={() => handleDownloadPDF(selectedProposal)}
                       >
