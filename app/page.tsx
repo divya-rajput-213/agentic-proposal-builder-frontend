@@ -68,8 +68,8 @@ export default function Home() {
       if (file instanceof File) formData.append("file", file);
 
       const response = await axios.post(
-        // `${apiUrl}agent/build-proposal/`,
-        "https://e8ae-49-249-18-30.ngrok-free.app",
+        `${apiUrl}agent/build-proposal/`,
+        // "https://e8ae-49-249-18-30.ngrok-free.app",
         formData
         // {
         //   headers: {

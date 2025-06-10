@@ -45,6 +45,7 @@ export function AIAssistant({
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -234,8 +235,8 @@ export function AIAssistant({
       if (additionalText) formData.append("job_description", additionalText);
 
       const response = await axios.post(
-        // `${apiUrl}agent/build-proposal/`,
-        "https://e8ae-49-249-18-30.ngrok-free.app",
+        `${apiUrl}agent/build-proposal/`,
+        // "https://e8ae-49-249-18-30.ngrok-free.app",
         formData
         // {
         //   headers: {
