@@ -40,7 +40,7 @@ export default function Home() {
   const [currentProposal, setCurrentProposal] = useState<Proposal | null>(null);
   const [showHistory, setShowHistory] = useState(true);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  console.log("slides :>> ", slides);
+  
   //api call
   const handleFileUpload = async (
     file?: File | string,
@@ -62,54 +62,83 @@ export default function Home() {
       description: additionalText,
     };
 
-    const doUpload = async (token?: string) => {
-      const formData = new FormData();
-      if (additionalText) formData.append("job_description", additionalText);
-      if (file instanceof File) formData.append("file", file);
-
-      const response = await axios.post(
-        `${apiUrl}agent/build-proposal/`,
-        // "https://e8ae-49-249-18-30.ngrok-free.app",
-        formData
-        // {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`,
-        //     "Content-Type": "multipart/form-data",
-        //   },
-        // }
-      );
-
-      return response.data;
-    };
-
     try {
-      // const token = localStorage.getItem("accessToken");
-      // if (!token) throw new Error("Access token missing. Please login again.");
+      let extractedText = "";
 
-      const data = await doUpload();
-   
-     // Check if data is a string message, don't update proposals in that case
-    if (typeof data === "string") {
-      alert(data); // Show the message from backend to the user
-      setCurrentStep("upload");
-    } else if (data) {
-      const fixedSlides = data?.slides.map((slide: any) => ({
-        ...slide,
-        id: slide.id.toString(), // convert number ID to string
-      }));
-      // Assume data is slides array here
-      
-      newProposal.slides = fixedSlides;
-      setSlides(fixedSlides);
-      setCurrentProposal(newProposal);
-      setProposals((prev) => [newProposal, ...prev]);
-      setCurrentStep("editing");
-    }
-    } catch (error: any) {
-      console.error("File upload failed:", error);
-      alert(
-        error.message || "There was an error uploading or processing the file."
+      // Step 1: Upload file if provided
+      if (file instanceof File) {
+        const formData = new FormData();
+        formData.append("document", file);
+
+        const uploadResponse = await axios.post(
+          `${apiUrl}/files/upload`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (uploadResponse.data.success) {
+          extractedText = uploadResponse.data.data.extractedText;
+        } else {
+          throw new Error("File upload failed");
+        }
+      }
+
+      // Step 2: Generate proposal - Let AI decide colors
+      const proposalPayload = {
+        ...(additionalText && { description: additionalText }),
+        ...(extractedText && { extractedText: extractedText }),
+        // Removed customization object - AI will choose appropriate colors
+      };
+
+      const proposalResponse = await axios.post(
+        `${apiUrl}/proposals/generate`,
+        proposalPayload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      const data = proposalResponse.data;
+
+      // Check if data is a string message, don't update proposals in that case
+      if (typeof data === "string") {
+        setCurrentStep("upload");
+      } else if (data.success && data.data) {
+        // The backend returns slides in data.data array
+        const slides = data.data.map((slide: any) => ({
+          ...slide,
+          id: slide.id.toString(), // Ensure ID is string
+        }));
+
+        newProposal.slides = slides;
+        setSlides(slides);
+        setCurrentProposal(newProposal);
+        setProposals((prev) => [newProposal, ...prev]);
+        setCurrentStep("editing");
+      } else {
+        throw new Error(data.message || "Proposal generation failed");
+      }
+    } catch (error: any) {
+      console.error("File upload/processing failed:", error);
+
+      // Handle different error types
+      let errorMessage = "There was an error processing your request.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
       setCurrentStep("upload");
     } finally {
       setIsProcessing(false);
@@ -221,7 +250,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
       {/* History Sidebar */}
-      {showHistory &&  (
+      {showHistory && (
         <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0">
           <ProposalHistory
             proposals={proposals}

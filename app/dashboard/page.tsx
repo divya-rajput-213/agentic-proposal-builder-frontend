@@ -135,7 +135,6 @@ export default function Dashboard() {
   const handleDownloadPDF = (proposal: Proposal) => {
     if (proposal.pdfUrl) {
       // In a real app, this would trigger the actual PDF download
-      console.log(`Downloading PDF for: ${proposal.title}`);
       alert(`PDF download started for: ${proposal.title}`);
     } else {
       alert("PDF not available for this proposal");

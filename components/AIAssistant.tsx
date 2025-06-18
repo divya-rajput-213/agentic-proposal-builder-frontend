@@ -1,26 +1,27 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Lightbulb, Palette, Type, Layout } from "lucide-react";
-import { Proposal, Slide } from "@/app/page";
-import axios from "axios";
+import { useState } from 'react';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Slide, Proposal } from '@/app/page';
+import axios from 'axios';
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+}
+
 interface AIAssistantProps {
   slides: Slide[];
   currentSlideIndex: number;
   onSlideUpdate: (slideId: string, updates: Partial<Slide>) => void;
   onAddSlide: () => void;
-  setSlides: any;
-  setCurrentProposal: any;
-  currentProposal: any;
-  setCurrentStep: any;
-  setProposals: any;
-}
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "ai";
-  timestamp: Date;
+  setSlides: (slides: Slide[]) => void;
+  setCurrentProposal: (proposal: Proposal | null) => void;
+  currentProposal: Proposal | null;
+  setCurrentStep: (step: "upload" | "processing" | "editing") => void;
+  setProposals: (proposals: Proposal[] | ((prev: Proposal[]) => Proposal[])) => void;
 }
 
 export function AIAssistant({
@@ -29,195 +30,25 @@ export function AIAssistant({
   onSlideUpdate,
   onAddSlide,
   setSlides,
-  setProposals,
   setCurrentProposal,
   currentProposal,
   setCurrentStep,
+  setProposals,
 }: AIAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "1",
-      text: "Hi! I'm your AI presentation assistant. I can help you improve your slides, suggest content, change layouts, and more. What would you like to work on?",
-      sender: "ai",
+      id: '1',
+      text: 'Hello! I can help you improve your presentation. You can ask me to modify slides, add new content, change colors, or regenerate the entire presentation.',
+      sender: 'ai',
       timestamp: new Date(),
     },
   ]);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const quickActions = [
-    {
-      icon: Lightbulb,
-      label: "Improve Content",
-      prompt: "Can you help improve the content of the current slide?",
-    },
-    {
-      icon: Palette,
-      label: "Change Style",
-      prompt: "Suggest a different style or color scheme for this slide",
-    },
-    {
-      icon: Layout,
-      label: "Better Layout",
-      prompt: "Can you suggest a better layout for this slide?",
-    },
-    {
-      icon: Type,
-      label: "Rewrite Text",
-      prompt: "Help me rewrite the text to be more engaging",
-    },
-  ];
-
-  // const handleSendMessage = async (text: string) => {
-  //   if (!text.trim()) return;
-
-  //   const userMessage: Message = {
-  //     id: Date.now().toString(),
-  //     text,
-  //     sender: 'user',
-  //     timestamp: new Date()
-  //   };
-
-  //   setMessages(prev => [...prev, userMessage]);
-  //   setInputText('');
-  //   setIsTyping(true);
-
-  //   // Simulate AI response
-  //   setTimeout(() => {
-  //     const currentSlide = slides[currentSlideIndex];
-  //     let aiResponse = '';
-
-  //     // Simple AI simulation based on keywords
-  //     const lowerText = text.toLowerCase();
-
-  //     if (lowerText.includes('improve') || lowerText.includes('better')) {
-  //       aiResponse = `I can help improve slide "${currentSlide?.title}". Here are some suggestions:\n\n• Make the title more engaging\n• Add more specific details to the content\n• Use bullet points for better readability\n• Consider adding visual elements\n\nWould you like me to apply any of these changes?`;
-  //     } else if (lowerText.includes('style') || lowerText.includes('color')) {
-  //       aiResponse = 'I suggest using a more vibrant color scheme with better contrast. We could try a blue and orange theme, or a green and gray professional look. Would you like me to apply one of these styles?';
-  //     } else if (lowerText.includes('layout')) {
-  //       aiResponse = `For the current slide, I recommend switching to a ${currentSlide?.template === 'bullets' ? 'content' : 'bullets'} layout for better visual impact. This would make the information more digestible. Shall I make this change?`;
-  //     } else if (lowerText.includes('rewrite') || lowerText.includes('text')) {
-  //       aiResponse = 'I can help rewrite the content to be more engaging and professional. Here\'s a suggestion:\n\n"' + (currentSlide?.content.substring(0, 50) + '... [improved version]"') + '\n\nWould you like me to apply this improvement?';
-  //     } else if (lowerText.includes('add slide')) {
-  //       onAddSlide();
-  //       aiResponse = 'I\'ve added a new slide for you! You can now customize it with your content. What topic would you like to focus on for this new slide?';
-  //     } else {
-  //       aiResponse = `I understand you want to work on "${text}". I can help you with:\n\n• Content improvements\n• Layout changes\n• Style adjustments\n• Adding new slides\n• Text refinements\n\nWhat specific aspect would you like to focus on first?`;
-  //     }
-
-  //     const aiMessage: Message = {
-  //       id: (Date.now() + 1).toString(),
-  //       text: aiResponse,
-  //       sender: 'ai',
-  //       timestamp: new Date()
-  //     };
-
-  //     setMessages(prev => [...prev, aiMessage]);
-  //     setIsTyping(false);
-  //   }, 1500);
-  // };
-  // const handleSendMessage = async (text: string) => {
-  //   if (!text.trim()) return;
-
-  //   const userMessage: Message = {
-  //     id: Date.now().toString(),
-  //     text,
-  //     sender: "user",
-  //     timestamp: new Date(),
-  //   };
-
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInputText("");
-  //   setIsTyping(true);
-
-  //   setTimeout(() => {
-  //     const currentSlide = slides[currentSlideIndex];
-  //     const lowerText = text.toLowerCase();
-
-  //     let suggestionText = "";
-  //     let updates: Partial<Slide> | undefined = undefined;
-
-  //     if (!currentSlide) {
-  //       suggestionText = "Slide not found.";
-  //     } else if (
-  //       lowerText.includes("improve") ||
-  //       lowerText.includes("better")
-  //     ) {
-  //       suggestionText = `I've improved slide "${currentSlide.title}".`;
-
-  //       updates = {
-  //         content: currentSlide.content + " [Improved]",
-  //         bulletPoints: currentSlide.bulletPoints?.length
-  //           ? [...currentSlide.bulletPoints, "Add a new supporting point"]
-  //           : ["Point 1", "Point 2"],
-  //         template: "bullets",
-  //       };
-  //     } else if (lowerText.includes("style")) {
-  //       suggestionText =
-  //         "Noted your request to change the style. UI styles can be applied during export or design customization.";
-  //     } else if (lowerText.includes("layout")) {
-  //       const newTemplate =
-  //         currentSlide.template === "bullets" ? "content" : "bullets";
-  //       suggestionText = `Layout updated to "${newTemplate}".`;
-
-  //       updates = {
-  //         template: newTemplate,
-  //       };
-  //     } else if (lowerText.includes("rewrite") || lowerText.includes("text")) {
-  //       suggestionText = "Content rewritten to sound more engaging.";
-  //       updates = {
-  //         content: "Here is an improved version of your content. [Rewritten]",
-  //       };
-  //     } else {
-  //       suggestionText = `I understand you want to work on "${text}". Please let me know whether it's layout, style, or content you'd like to change.`;
-  //     }
-
-  //     // ✅ Only update current slide if updates exist
-  //     if (updates) {
-  //       const updatedSlides = slides.map((slide, index) =>
-  //         index === currentSlideIndex ? { ...slide, ...updates } : slide
-  //       );
-  //       console.log("updatedSlides :>> ", updatedSlides);
-  //       setSlides(updatedSlides);
-
-  //       // Optionally, update proposal object if required by your app structure
-  //       const updatedProposal = {
-  //         ...currentProposal,
-  //         slides: updatedSlides,
-  //       };
-
-  //       setCurrentProposal(updatedProposal);
-  //       setProposals((prev: any) => {
-  //         const [_, ...rest] = prev; // Avoid pushing a new one
-  //         return [updatedProposal, ...rest];
-  //       });
-
-  //       setCurrentStep("editing");
-  //     }
-
-  //     const aiMessage: Message = {
-  //       id: (Date.now() + 1).toString(),
-  //       text: suggestionText,
-  //       sender: "ai",
-  //       timestamp: new Date(),
-  //     };
-
-  //     setMessages((prev) => [...prev, aiMessage]);
-  //     setIsTyping(false);
-  //   }, 1500);
-  // };
-
-  const handleSendMessage = async (additionalText: string) => {
+   const handleSendMessage = async (additionalText: string) => {
     if (!additionalText.trim()) return;
 
     const userMessage: Message = {
@@ -230,108 +61,112 @@ export function AIAssistant({
     setInputText("");
     setIsTyping(true);
 
-    const doUpload = async (token?: string) => {
-      const formData = new FormData();
-      if (additionalText) formData.append("job_description", additionalText);
-
-      const response = await axios.post(
-        `${apiUrl}agent/build-proposal/`,
-        // "https://e8ae-49-249-18-30.ngrok-free.app",
-        formData
-        // {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`,
-        //     "Content-Type": "multipart/form-data",
-        //   },
-        // }
-      );
-
-      return response.data;
-    };
-
     try {
-      // const token = localStorage.getItem("accessToken");
-      // if (!token) throw new Error("Access token missing. Please login again.");
+      // Send only the user's raw input - let backend handle everything
+      const proposalPayload = {
+        description: additionalText,
+      };
 
-      const data = await doUpload();
-
-      // Check if data is a string message, don't update proposals in that case
-      if (typeof data === "string") {
-        alert(data); // Show the message from backend to the user
-        setCurrentStep("upload");
-      } else if (data) {
-        const fixedSlides = data.slides.map((slide: any) => ({
-          ...slide,
-          id: slide.id.toString(), // convert number ID to string
-        }));
-        // Assume data is slides array here
-
-        // newProposal.slides = fixedSlides;
-        setSlides(fixedSlides);
-        // setCurrentProposal(newProposal);
-        // setProposals((prev:any) => [newProposal, ...prev]);
-        // const aiMessage: Message = {
-        //   id: (Date.now() + 1).toString(),
-        //   text: additionalText,
-        //   sender: "ai",
-        //   timestamp: new Date(),
-        // };
-
-        // setMessages((prev) => [...prev, aiMessage]);
-        setIsTyping(false);
-        setCurrentStep("editing");
-      }
-    } catch (error: any) {
-      console.error("File upload failed:", error);
-      alert(
-        error.message || "There was an error uploading or processing the file."
+      const proposalResponse = await axios.post(
+        `${apiUrl}/proposals/generate`,
+        proposalPayload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
-      setCurrentStep("upload");
+
+      const data = proposalResponse.data;
+
+      if (data.success && data.data) {
+        // The backend returns slides in data.data array
+        const updatedSlides = data.data.map((slide: any) => ({
+          ...slide,
+          id: slide.id.toString(), // Ensure ID is string
+        }));
+
+        // Update slides
+        setSlides(updatedSlides);
+
+        // Update current proposal if it exists
+        if (currentProposal) {
+          const updatedProposal = {
+            ...currentProposal,
+            slides: updatedSlides,
+            updatedAt: new Date(),
+          };
+          setCurrentProposal(updatedProposal);
+          setProposals((prev) =>
+            prev.map((p) => (p.id === updatedProposal.id ? updatedProposal : p))
+          );
+        }
+
+        // Add AI response message
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `I've updated your presentation based on your request. The presentation now has ${updatedSlides.length} slides with improved content and styling.`,
+          sender: "ai",
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, aiMessage]);
+        setCurrentStep("editing");
+      } else {
+        throw new Error(data.message || "Failed to update presentation");
+      }
+    } catch (error: any) {      
+      let errorMessage = "I encountered an error while processing your request.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      const errorAiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: errorMessage,
+        sender: "ai",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorAiMessage]);
     } finally {
-      // setIsProcessing(false);
+      setIsTyping(false);
     }
   };
-  const handleQuickAction = (prompt: string) => {
-    handleSendMessage(prompt);
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(inputText);
+    }
   };
 
+  const quickActions = [
+    "Make the presentation more professional",
+    "Add more bullet points to current slide",
+    "Use a dark blue theme",
+    "Make it corporate style with gray colors",
+    "Add a conclusion slide",
+    "Make it more engaging with bright colors",
+    "Use a minimalist white theme"
+  ];
+
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">AI Assistant</h3>
-            <p className="text-xs text-gray-500">
-              Ready to help improve your presentation
-            </p>
-          </div>
+          <Bot className="h-5 w-5 text-blue-600" />
+          <h3 className="font-semibold text-gray-900">AI Assistant</h3>
         </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="p-4 border-b border-gray-100">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">
-          Quick Actions
-        </h4>
-        <div className="grid grid-cols-2 gap-2">
-          {quickActions.map((action, index) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={index}
-                onClick={() => handleQuickAction(action.prompt)}
-                className="flex flex-col items-center p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-xs"
-              >
-                <Icon className="h-4 w-4 text-gray-600 mb-1" />
-                <span className="text-gray-700">{action.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <p className="text-sm text-gray-600 mt-1">
+          Ask me to improve your presentation or change colors
+        </p>
       </div>
 
       {/* Messages */}
@@ -340,27 +175,32 @@ export function AIAssistant({
           <div
             key={message.id}
             className={`flex ${
-              message.sender === "user" ? "justify-end" : "justify-start"
+              message.sender === 'user' ? 'justify-end' : 'justify-start'
             }`}
           >
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                message.sender === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-900"
+                message.sender === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-900'
               }`}
             >
-              <p className="text-sm whitespace-pre-line">{message.text}</p>
-              <p
-                className={`text-xs mt-1 ${
-                  message.sender === "user" ? "text-blue-200" : "text-gray-500"
-                }`}
-              >
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
+              <div className="flex items-start space-x-2">
+                {message.sender === 'ai' && (
+                  <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                )}
+                {message.sender === 'user' && (
+                  <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm">{message.text}</p>
+                  <p className={`text-xs mt-1 ${
+                    message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -368,38 +208,47 @@ export function AIAssistant({
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-lg p-3">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
+              <div className="flex items-center space-x-2">
+                <Bot className="h-4 w-4" />
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-gray-600">AI is thinking...</span>
               </div>
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Quick Actions */}
       <div className="p-4 border-t border-gray-200">
+        <p className="text-xs font-medium text-gray-700 mb-2">Quick Actions:</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              onClick={() => handleSendMessage(action)}
+              disabled={isTyping}
+              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+            >
+              {action}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
         <div className="flex space-x-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage(inputText)}
-            placeholder="Ask me to improve your slides..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me to improve your presentation or change colors..."
+            disabled={isTyping}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           />
           <button
             onClick={() => handleSendMessage(inputText)}
             disabled={!inputText.trim() || isTyping}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Send className="h-4 w-4" />
           </button>
