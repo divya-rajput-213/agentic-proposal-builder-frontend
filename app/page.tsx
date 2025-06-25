@@ -71,7 +71,7 @@ export default function Home() {
         formData.append("document", file);
 
         const uploadResponse = await axios.post(
-          `${apiUrl}/files/upload`,
+          `${apiUrl}/api/files/upload`,
           formData,
           {
             headers: {
@@ -95,7 +95,7 @@ export default function Home() {
       };
 
       const proposalResponse = await axios.post(
-        `${apiUrl}/proposals/generate`,
+        `${apiUrl}/api/proposals/generate`,
         proposalPayload,
         {
           headers: {

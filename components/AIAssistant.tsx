@@ -68,7 +68,7 @@ export function AIAssistant({
       };
 
       const proposalResponse = await axios.post(
-        `${apiUrl}/proposals/generate`,
+        `${apiUrl}/api/proposals/generate`,
         proposalPayload,
         {
           headers: {
